@@ -1,6 +1,7 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const userValidation = require("../validations/userValidation");
+const jwt = require("jsonwebtoken");
 
 async function getAllUser(req, res, next) {
   let users;
@@ -51,6 +52,7 @@ async function login(req, res, next) {
   } catch (err) {
     return console.log(err);
   }
+
   if (!existingUser) {
     return res.status(404).json({ message: "User doesn't exist" });
   }
@@ -59,6 +61,10 @@ async function login(req, res, next) {
   if (!isPasswordCorrect) {
     return res.status(400).json({ message: "Incorrect password" });
   }
-  return res.status(200).json({ message: "Login Successfully" });
+  const token = jwt.sign(
+    { email: existingUser.email, id: existingUser._id },
+    "Here is Secret Key"
+  );
+  return res.status(200).json({ user: existingUser, token });
 }
 module.exports = { getAllUser, signup, login };
