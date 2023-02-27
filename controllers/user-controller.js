@@ -1,5 +1,6 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
+const userValidation = require("../validations/userValidation");
 
 async function getAllUser(req, res, next) {
   let users;
@@ -18,9 +19,13 @@ async function signup(req, res, next) {
   const { name, email, password } = req.body;
   let existingUser;
   try {
+    await userValidation.userSignupSchema.validate(req.body);
     existingUser = await User.findOne({ email });
-  } catch (err) {
-    return console.log(err);
+  } catch (e) {
+    if (e.name === "ValidationError") {
+      return res.status(400).json({ message: e.errors[0] });
+    }
+    return console.log(e);
   }
   if (existingUser) {
     return res.status(400).json({ message: "User already exist" });
